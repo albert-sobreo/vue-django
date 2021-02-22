@@ -4,26 +4,124 @@
 
 {% block body %}
 
-<div id="app" v-cloak>
+<div id="app" class="container" v-cloak>
     <pre hidden>[[$data]]</pre>
-    <h1>Authors</h1>
-    <div v-for="author in authorsList">
-        <div>
-            <span>[[author.id]]</span>
-            <span>[[author.first_name]]</span>
-            <span>[[author.last_name]]</span>
-            <button @click="deleteAuthor(author.id)">Delete</button>
-            <button @click="editAuthor(author.id)">Edit</button>
-        </div>
-    </div>
+    <h1 style="font-weight: 700;">Authors</h1>
+    <a href="/index1/">articles</a>
+
+    <table class="table">
+        <thead>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Actions</th>
+        </thead>
+        <tbody>
+            <tr v-for="author in authorsList">
+                <td><span>[[author.id]]</span></td>
+                <td><span>[[author.first_name]] [[author.last_name]]</span></td>
+                <td>
+                    <button class="btn btn-sm btn-primary" @click="deleteAuthor(author.id)" style="font-weight: 700">Delete</button>
+                    <button class="btn btn-sm btn-primary" @click="editAuthor(author.id)" style="font-weight: 700">Edit</button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
     <div>
-        <h4>Edit</h4>
-        <label for="fname">First Name</label>
-        <input name="fname" type="text" v-model="authorInput.first_name"><br>
-        <label for="lname">Last Name</label>
-        <input name="lname" type="text" v-model="authorInput.last_name"><br>
-        <button @click="submitAuthor()">Save</button>
+        <h4 style="font-weight: 700;">Edit / Create</h4>
+
+        <label for="fname" style="font-weight: 700">First Name</label>
+        <input placeholder="Enter first name" class="form-control form-control-sm semibold" name="fname" type="text" v-model="authorInput.first_name"><br>
+
+        <label for="lname" style="font-weight: 700">Last Name</label>
+        <input placeholder="Enter last name" class="form-control form-control-sm semibold" name="lname" type="text" v-model="authorInput.last_name"><br>
+
+        <button class="btn btn-sm btn-warning" @click="submitAuthor()" style="font-weight: 700;">SAVE</button>
     </div>
 </div>
+
+{% endblock %}
+
+{% block script %}
+
+<script>
+    Vue.config.silent = false;
+Vue.config.devtools = true;
+var app = new Vue({
+    delimiters: ['[[', ']]'],
+
+    el: '#app',
+
+    data: {
+        config: {
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        },
+
+        authorsList: [],
+
+        authorInput: {
+            id: null,
+            first_name: null,
+            last_name: null,
+        }
+    },
+
+    methods: {
+        refreshList(){
+            axios
+            .get('/api/author/')
+            .then(res=>this.authorsList=res.data)
+        },
+        submitAuthor(){
+            if (this.authorInput.id){
+                axios
+                .put(`api/author/${this.authorInput.id}/`, this.authorInput, this.config)
+                .then(res=>this.refreshList())
+
+                this.authorInput.id = null;
+                this.authorInput.first_name = null;
+                this.authorInput.last_name = null
+                return
+            }
+
+            axios
+            .post('/api/author/', this.authorInput, this.config)
+            .then(res=>this.refreshList())
+
+            this.authorInput.id = null;
+            this.authorInput.first_name = null;
+            this.authorInput.last_name = null
+            return
+        },
+        deleteAuthor(id){
+            getAuthor = this.authorsList.find(author=>author.id === id)
+            Swal.fire({
+                html: `Are you sure you want to delete <br><b>${getAuthor.first_name + " " + getAuthor.last_name}</b>`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes',
+            }).then((result) => {
+                if(result.isConfirmed){
+                    axios
+                    .delete(`/api/author/${id}/`, this.config)
+                    .then(res=>this.refreshList())
+                }
+            })
+        },
+        editAuthor(id){
+            this.authorInput.id = this.authorsList.find(author=>author.id === id).id
+            this.authorInput.first_name = this.authorsList.find(author=>author.id === id).first_name
+            this.authorInput.last_name = this.authorsList.find(author=>author.id === id).last_name
+        }
+    },
+
+    mounted(){
+        this.refreshList()
+    }
+
+})
+</script>
 
 {% endblock %}

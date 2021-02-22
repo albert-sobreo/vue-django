@@ -1,36 +1,153 @@
 {% extends "base_generic.html" %}
 
-{% block title %}Index 1{% endblock %}
+{% block title %}Articles{% endblock %}
 
 {% block body %}
 
-<div id="app2" v-cloak>
+<div id="app" class="container" v-cloak>
     <pre hidden>[[$data]]</pre>
-    <h1>Articles</h1>
+    <h1 style="font-weight: 700;">Articles</h1>
+    <a href="/">authors</a>
 
-    <div v-for="article in articlesList">
-        <div>
-            <span>[[article.id]]</span>
-            <span>[[article.title]]</span>
-            <span>[[article.body]]</span>
-            <span>[[getAuthorName(article.author)]]</span>
-            <button @click="deleteArticle(article.id)">Delete</button>
-            <button @click="editArticle(article.id)">Edit</button>
-        </div>
-    </div>
+    <table class="table">
+        <thead>
+            <th>ID</th>
+            <th>Title</th>
+            <th>Body</th>
+            <th>Author</th>
+            <th>Time Created</th>
+            <th>Actions</th>
+        </thead>
+        <tbody>
+            <tr v-for="article in articlesList">
+                <td><span>[[article.id]]</span></td>
+                <td><span>[[article.title]]</span></td>
+                <td><span>[[article.body]]</span></td>
+                <td><span>[[getAuthorName(article.author)]]</span></td>
+                <td><span class="datenow">[[getRealDate(article.created_at)]]</span></td>
+                <td>
+                    <button class="btn btn-sm btn-primary" @click="deleteArticle(article.id)" style="font-weight: 700">Delete</button>
+                    <button class="btn btn-sm btn-primary" @click="editArticle(article.id)" style="font-weight: 700">Edit</button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
 
     <!-- input -->
-    <h4>Edit / Create</h4>
+    <h4 style="font-weight: 700;">Edit / Create</h4>
 
-    <label for="title">Title</label>
-    <input type="text" name="title" v-model="articleInput.title"><br>
-    <label for="body">Body</label>
-    <textarea name="body" id="" cols="30" rows="10" v-model="articleInput.body"></textarea><br>
-    <label for="author">Author</label>
-    <select name="author" id="" v-model="articleInput.author">
-        <option v-for="author in authorsList" :value="author.id"><span>[[author.first_name]] [[author.last_name]]</span></option>
+    <label for="title" style="font-weight: 700;">Title</label>
+    <input placeholder="Enter Title" class="form-control form-control-sm semibold" type="text" name="title" v-model="articleInput.title"><br>
+
+    <label for="body" style="font-weight: 700;">Body</label>
+    <textarea placeholder="Enter body" class="form-control form-control-sm semibold" name="body" id="" cols="30" rows="10" v-model="articleInput.body"></textarea><br>
+
+    <label for="author" style="font-weight: 700;">Author</label>
+    <select class="form-control form-control-sm semibold" name="author" id="" v-model="articleInput.author" required>
+        <option class="semibold" v-for="author in authorsList" :value="author.id"><span>[[author.first_name]] [[author.last_name]]</span></option>
     </select><br>
-    <button @click="submitArticle()">Save</button>
+
+    <button class="btn btn-sm btn-warning" @click="submitArticle()" style="font-weight: 700;">Save</button>
 </div>
+
+{% endblock %}
+
+{% block script %}
+
+<script>
+    var app = new Vue({
+        delimiters: ['[[', ']]'],
+        
+        el: '#app',
+    
+        data: {
+            config: {
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            },
+    
+            authorsList: [],
+    
+            articlesList: [],
+    
+            articleInput: {
+                id: null,
+                author: null,
+                title: null,
+                body: null
+            }
+        },
+    
+        methods: {
+            refreshList(){
+                axios
+                .get('/api/article/')
+                .then(res=>this.articlesList=res.data)
+    
+                axios
+                .get('/api/author/')
+                .then(res=>this.authorsList=res.data)
+            },
+            getRealDate(datestring){
+                const options = { dateStyle: 'medium', timeStyle: 'short' };
+                return new Date(datestring).toLocaleString('en-US', options)
+            },
+            getAuthorName(id){
+                try {
+                    return this.authorsList.find(author=>author.id === id).first_name + " " + this.authorsList.find(author=>author.id === id).last_name
+                }
+                catch(err){
+                    console.log(err.message)
+                }
+            },
+            editArticle(id){
+                this.articleInput.id = this.articlesList.find(article=>article.id === id).id
+                this.articleInput.title = this.articlesList.find(article=>article.id === id).title
+                this.articleInput.body = this.articlesList.find(article=>article.id === id).body
+                this.articleInput.author = this.articlesList.find(article=>article.id ===id).author
+            },
+            deleteArticle(id){
+                Swal.fire({
+                    icon: 'warning',
+                    html: `Are you sure you want to delete <br><b>${this.articlesList.find(article=>article.id === id).title}</b>?`,
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes',
+                }).then((result)=>{
+                    if(result.isConfirmed){
+                        axios
+                        .delete(`/api/article/${id}/`, this.config)
+                        .then(res=>this.refreshList())
+                    }
+                })
+            },
+            submitArticle(){
+                if(this.articleInput.id){
+                    axios
+                    .put(`/api/article/${this.articleInput.id}/`, this.articleInput, this.config)
+                    .then(res=>this.refreshList())
+    
+                    this.articleInput.id = null;
+                    this.articleInput.title = null;
+                    this.articleInput.body = null;
+                    this.articleInput.author = null;
+                    return;
+                }
+                axios
+                .post(`/api/article/`, this.articleInput, this.config)
+                .then(res=>this.refreshList())
+                
+                this.articleInput.id = null;
+                this.articleInput.title = null;
+                this.articleInput.body = null;
+                this.articleInput.author = null;
+            }
+        },
+    
+        mounted(){
+            this.refreshList()
+        }
+    })
+</script>
 
 {% endblock %}
