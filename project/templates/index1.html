@@ -1,0 +1,36 @@
+{% extends "base_generic.html" %}
+
+{% block title %}Index 1{% endblock %}
+
+{% block body %}
+
+<div id="app2" v-cloak>
+    <pre>[[$data]]</pre>
+    <h1>Articles</h1>
+
+    <div v-for="article in articlesList">
+        <div>
+            <span>[[article.id]]</span>
+            <span>[[article.title]]</span>
+            <span>[[article.body]]</span>
+            <span>[[getAuthorName(article.author)]]</span>
+            <button @click="deleteArticle(article.id)">Delete</button>
+            <button @click="editArticle(article.id)">Edit</button>
+        </div>
+    </div>
+
+    <!-- input -->
+    <h4>Edit / Create</h4>
+
+    <label for="title">Title</label>
+    <input type="text" name="title" v-model="articleInput.title"><br>
+    <label for="body">Body</label>
+    <textarea name="body" id="" cols="30" rows="10" v-model="articleInput.body"></textarea><br>
+    <label for="author">Author</label>
+    <select name="author" id="" v-model="articleInput.author">
+        <option v-for="author in authorsList" :value="author.id"><span>[[author.first_name]] [[author.last_name]]</span></option>
+    </select><br>
+    <button @click="submitArticle()">Save</button>
+</div>
+
+{% endblock %}

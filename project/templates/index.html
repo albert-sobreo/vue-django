@@ -1,0 +1,29 @@
+{% extends "base_generic.html" %}
+
+{% block title %}Authors{% endblock %}
+
+{% block body %}
+
+<div id="app" v-cloak>
+    <pre hidden>[[$data]]</pre>
+    <h1>Authors</h1>
+    <div v-for="author in authorsList">
+        <div>
+            <span>[[author.id]]</span>
+            <span>[[author.first_name]]</span>
+            <span>[[author.last_name]]</span>
+            <button @click="deleteAuthor(author.id)">Delete</button>
+            <button @click="editAuthor(author.id)">Edit</button>
+        </div>
+    </div>
+    <div>
+        <h4>Edit</h4>
+        <label for="fname">First Name</label>
+        <input name="fname" type="text" v-model="authorInput.first_name"><br>
+        <label for="lname">Last Name</label>
+        <input name="lname" type="text" v-model="authorInput.last_name"><br>
+        <button @click="submitAuthor()">Save</button>
+    </div>
+</div>
+
+{% endblock %}
