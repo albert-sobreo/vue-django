@@ -10,3 +10,8 @@ class ArticleSZ(serializers.ModelSerializer):
     class Meta:
         model = Article
         fields = "__all__"
+
+class UserSZ(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('username', 'first_name', 'last_name', 'article')

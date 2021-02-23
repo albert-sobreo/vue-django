@@ -4,6 +4,10 @@
 
 {% block body %}
 
+<div id="navbar-component">
+    <navbar id="{{user.id}}"></navbar>
+</div>
+
 <div id="app" class="container" v-cloak>
     <pre hidden>[[$data]]</pre>
     <h1 style="font-weight: 700;">Articles</h1>
@@ -147,6 +151,12 @@
         mounted(){
             this.refreshList()
         }
+    })
+</script>
+
+<script>
+    new Vue({
+        el: '#navbar-component'
     })
 </script>
 
