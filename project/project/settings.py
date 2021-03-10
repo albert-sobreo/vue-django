@@ -25,7 +25,7 @@ SECRET_KEY = 'yo!_&*(!(n-k+!071*%*pxnn#h%$k(fcv0o86xrz!8gkei)ob3'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = ["*", "http://django-vue-env.eba-5zd3d7nr.ap-southeast-1.elasticbeanstalk.com/"]
 
 
 # Application definition
@@ -78,8 +78,12 @@ WSGI_APPLICATION = 'project.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'vue-django',
+        'USER': 'postgres',
+        'PASSWORD': '1234',
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
 
@@ -125,10 +129,10 @@ STATIC_URL = '/static/'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'static/media')
 
-STATICFILES_DIRS = (
-    os.path.join(BASE_DIR, 'static'),
-    os.path.join(BASE_DIR, 'static/media')
-)
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static/media'),
+    os.path.join(BASE_DIR, 'static/')
+]
 
 AUTH_USER_MODEL = 'app.User'
 

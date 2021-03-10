@@ -1,3 +1,4 @@
+from django.contrib.auth.forms import UserModel
 from django.db.models.sql import query
 from django.http.response import HttpResponse
 from django.shortcuts import redirect, render, HttpResponse
@@ -34,13 +35,20 @@ def index1(request):
 
 @never_cache
 def login(request):
+    if request.user.is_authenticated:
+        return redirect('/')
+    
     if request.method == "POST":
         username = request.POST['username']
         password = request.POST['password']
         user = authenticate(request, username=username, password=password)
+        userModel = User.objects.get(username=username)
         if user is not None:
             auth_login(request, user)
-            return redirect('/')
+            if user.position == 'BOSS':
+                return redirect('/')
+            else:
+                return redirect('/index1/')
 
         else:
             return HttpResponse('login failed')

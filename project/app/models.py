@@ -20,5 +20,5 @@ class Article(models.Model):
         return self.title
 
 class User(AbstractUser):
+    position = models.CharField(max_length=10, blank=True, null=True)
     article = models.ForeignKey(Article, on_delete=models.PROTECT, null=True, blank=True)
-
